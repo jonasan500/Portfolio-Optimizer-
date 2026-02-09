@@ -3,6 +3,7 @@
 Portfolio Optimizer - Interactive Web Interface
 """
 import streamlit as st
+import streamlit.components.v1 as components  # ✅ REQUIRED for reliable JS on Streamlit Cloud/mobile
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -19,10 +20,12 @@ st.set_page_config(
     page_title="Portfolio Optimizer by Jonathan Sanchez",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="collapsed",  # ✅ native default collapse
+    initial_sidebar_state="collapsed",  # ✅ default collapsed
 )
 
-# Custom CSS + JS (sidebar toggle that doesn't depend on Streamlit's internal buttons)
+# ---------------------------
+# CSS (keep here)
+# ---------------------------
 st.markdown(
     """
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -214,78 +217,76 @@ st.markdown(
     }
 </style>
 
-<script>
-(function() {
-    let menuBtn;
-
-    function toggleSidebar() {
-        document.body.classList.toggle("sidebar-hidden");
-    }
-
-    function ensureHiddenOnMobile() {
-        if (window.innerWidth <= 768) {
-            document.body.classList.add("sidebar-hidden");
-        } else {
-            document.body.classList.remove("sidebar-hidden");
-        }
-    }
-
-    function createMenuButton() {
-        if (menuBtn) return;
-
-        menuBtn = document.createElement('button');
-        menuBtn.id = 'customMenuBtn';
-        menuBtn.innerHTML =
-          '<div style="font-size: 28px; line-height: 1;">☰</div>' +
-          '<div style="font-size: 14px; margin-top: 4px; color: #FF0000; font-weight: 900;">MENU</div>';
-
-        menuBtn.style.cssText = `
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 999999;
-            background: white;
-            border: 4px solid #FF0000;
-            padding: 12px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 0 40px rgba(255,0,0,0.8), 0 0 60px rgba(255,0,0,0.5);
-            text-align: center;
-            font-family: 'Scope One', serif;
-            display: none;
-            user-select: none;
-        `;
-
-        document.body.appendChild(menuBtn);
-        menuBtn.addEventListener('click', toggleSidebar);
-
-        syncButtonVisibility();
-        ensureHiddenOnMobile();
-    }
-
-    function syncButtonVisibility() {
-        if (!menuBtn) return;
-        menuBtn.style.display = (window.innerWidth <= 768) ? 'block' : 'none';
-    }
-
-    // Wait for Streamlit to mount sidebar element
-    const ready = setInterval(() => {
-        if (document.body && document.querySelector('[data-testid="stSidebar"]')) {
-            clearInterval(ready);
-            createMenuButton();
-        }
-    }, 50);
-
-    window.addEventListener('resize', () => {
-        syncButtonVisibility();
-        ensureHiddenOnMobile();
-    });
-})();
-</script>
-
 <div class="creator-badge">Jonathan Sanchez</div>
 """,
     unsafe_allow_html=True,
+)
+
+# ---------------------------
+# JS (must be injected via components.html for Streamlit Cloud reliability)
+# ---------------------------
+components.html(
+    """
+<script>
+(function() {
+  function ensureMenuBtn() {
+    if (document.getElementById("customMenuBtn")) return;
+
+    const btn = document.createElement("button");
+    btn.id = "customMenuBtn";
+    btn.innerHTML = `
+      <div style="font-size:28px; line-height:1;">☰</div>
+      <div style="font-size:14px; margin-top:4px; color:#FF0000; font-weight:900;">MENU</div>
+    `;
+
+    btn.style.cssText = `
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 999999;
+      background: white;
+      border: 4px solid #FF0000;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 40px rgba(255,0,0,0.8), 0 0 60px rgba(255,0,0,0.5);
+      text-align: center;
+      display: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    `;
+
+    document.body.appendChild(btn);
+
+    function toggleSidebar() {
+      document.body.classList.toggle("sidebar-hidden");
+    }
+
+    function sync() {
+      // show on mobile only
+      btn.style.display = (window.innerWidth <= 768) ? "block" : "none";
+
+      // default hidden on mobile
+      if (window.innerWidth <= 768) document.body.classList.add("sidebar-hidden");
+      else document.body.classList.remove("sidebar-hidden");
+    }
+
+    btn.addEventListener("click", toggleSidebar);
+    window.addEventListener("resize", sync);
+    sync();
+  }
+
+  // wait until Streamlit sidebar exists
+  const t = setInterval(() => {
+    if (document.body && document.querySelector('[data-testid="stSidebar"]')) {
+      clearInterval(t);
+      ensureMenuBtn();
+    }
+  }, 50);
+})();
+</script>
+""",
+    height=0,
 )
 
 # Title and description
@@ -460,9 +461,9 @@ if st.session_state.optimization_results is not None:
         st.subheader("Portfolio Allocation")
 
         optimal_weights = results["weights"][max_sharpe_idx]
-        allocation_df = pd.DataFrame({"Ticker": valid_tickers, "Weight": optimal_weights * 100}).sort_values(
-            "Weight", ascending=False
-        )
+        allocation_df = pd.DataFrame(
+            {"Ticker": valid_tickers, "Weight": optimal_weights * 100}
+        ).sort_values("Weight", ascending=False)
         st.dataframe(allocation_df.style.format({"Weight": "{:.1f}%"}), hide_index=True)
 
         fig, ax = plt.subplots(figsize=(7, 7), facecolor="#000")
@@ -508,7 +509,6 @@ if st.session_state.optimization_results is not None:
                 c3.metric("VaR 95%", f"{mc_res['var_95'] * 100:.1f}%")
                 c4.metric("Expected", f"${np.mean(mc_res['final_values']):,.0f}")
 
-                # Paths Chart
                 fig, ax = plt.subplots(figsize=(10, 6), facecolor="#000")
                 ax.set_facecolor("#000")
 
@@ -527,7 +527,6 @@ if st.session_state.optimization_results is not None:
                 ax.grid(True, alpha=0.3, color="#444")
                 st.pyplot(fig)
 
-                # Distribution
                 fig, ax = plt.subplots(figsize=(10, 5), facecolor="#000")
                 ax.set_facecolor("#000")
 
@@ -562,7 +561,9 @@ if st.session_state.optimization_results is not None:
         ).sort_values("Sharpe", ascending=False)
 
         st.dataframe(
-            assets_df.style.format({"Return (%)": "{:.2f}%", "Volatility (%)": "{:.2f}%", "Sharpe": "{:.3f}"}),
+            assets_df.style.format(
+                {"Return (%)": "{:.2f}%", "Volatility (%)": "{:.2f}%", "Sharpe": "{:.3f}"}
+            ),
             hide_index=True,
         )
 
@@ -584,13 +585,47 @@ if st.session_state.optimization_results is not None:
         st.pyplot(fig)
 
     with tab5:
-        st.subheader("About")
-        st.write("Modern Portfolio Theory optimization for maximum Sharpe ratio.")
-        st.error("**NOT financial advice.** Educational purposes only.")
+        st.subheader("About This Optimizer")
+
+        st.markdown(
+            """
+**What this website does**
+
+This web app builds and evaluates portfolios using **Modern Portfolio Theory**. You enter a list of tickers and constraints (min/max weight per asset),
+choose a history window, and select how many random portfolios to test. The optimizer:
+
+- Downloads **historical price data** for the selected tickers over your chosen lookback period  
+- Converts prices into **returns** and estimates each asset’s:
+  - expected annual return  
+  - annualized volatility  
+  - covariance matrix (how assets move together)
+- Generates thousands of **random portfolios** that respect your position limits
+- Computes portfolio **expected return, risk (volatility), and Sharpe ratio**
+- Highlights the portfolio with the **maximum Sharpe ratio** and the portfolio with **minimum volatility**
+- Runs an optional **Monte Carlo simulation** to model a range of potential future outcomes based on historical return/volatility relationships
+
+**Important limitations & realism notes**
+
+- **More data = more time.** Increasing “Years of history” or “Portfolios to test” will materially increase runtime (more prices to fetch + more portfolios to compute).
+- **Historical returns can be skewed.** A single strong year (or crash) can heavily influence average returns and volatility estimates.
+- **Regime changes happen.** Markets change. Correlations and volatilities are not constant — relationships observed in the past may not hold in the future.
+- **Data quality matters.** Missing price points, ticker changes, corporate actions, or short histories can distort results.
+- **This is a model, not a guarantee.** The “optimal” portfolio is optimal **only under the assumptions** of this framework and the data window you selected.
+
+**Disclaimer**
+
+This tool is provided **for educational and research purposes only** and is **not financial advice**. Nothing on this page is a recommendation to buy or sell any security.
+Use at your own risk.
+"""
+        )
+
+        st.error("**NOT financial advice. Educational purposes only.**")
+
         st.markdown("---")
         st.markdown(
             "<p style='text-align: center; color: #999;'>Created by Jonathan Sanchez • 2026</p>",
             unsafe_allow_html=True,
         )
+
 else:
     st.info("👈 Configure settings and click 'Optimize Portfolio'")
