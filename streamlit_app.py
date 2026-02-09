@@ -149,21 +149,18 @@ st.markdown("""
         visibility: hidden;
     }
     
-    /* DESKTOP - Make sidebar toggle visible and RED */
+    /* Sidebar Toggle Button - Make it visible and styled */
     button[kind="header"] {
-        background-color: #FF0000 !important;
+        background-color: #540001 !important;
         color: #ffffff !important;
-        border: 3px solid #ffffff !important;
-        padding: 10px 16px !important;
-        font-size: 20px !important;
-        font-weight: 900 !important;
-        border-radius: 6px !important;
-        box-shadow: 0 0 25px rgba(255, 0, 0, 0.9) !important;
+        border: 2px solid #ffffff !important;
+        padding: 8px 12px !important;
+        font-size: 18px !important;
+        border-radius: 4px !important;
     }
     
     button[kind="header"]:hover {
-        background-color: #CC0000 !important;
-        transform: scale(1.1) !important;
+        background-color: #6B0F1A !important;
     }
 
     /* Mobile Responsive Fixes */
@@ -241,34 +238,87 @@ st.markdown("""
             padding: 10px !important;
         }
         
-        /* ULTRA VISIBLE SIDEBAR TOGGLE ON MOBILE - PULSING RED */
+        /* Make sidebar toggle MORE visible on mobile */
         button[kind="header"] {
+            display: block !important;
             position: fixed !important;
-            top: 70px !important;
-            left: 15px !important;
-            z-index: 99999 !important;
-            background-color: #FF0000 !important;
+            top: 10px !important;
+            left: 10px !important;
+            z-index: 1000 !important;
+            background-color: #540001 !important;
             color: #ffffff !important;
-            border: 4px solid #ffffff !important;
-            padding: 16px 24px !important;
-            font-size: 26px !important;
-            font-weight: 900 !important;
-            box-shadow: 0 0 50px rgba(255, 0, 0, 1), 0 0 80px rgba(255, 0, 0, 0.8) !important;
-            animation: pulse-glow 2s infinite !important;
-        }
-        
-        @keyframes pulse-glow {
-            0%, 100% {
-                box-shadow: 0 0 50px rgba(255, 0, 0, 1), 0 0 80px rgba(255, 0, 0, 0.8);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 0 70px rgba(255, 0, 0, 1), 0 0 120px rgba(255, 0, 0, 1);
-                transform: scale(1.05);
-            }
+            border: 2px solid #ffffff !important;
+            padding: 10px 14px !important;
+            font-size: 20px !important;
         }
     }
 </style>
+
+<!-- CUSTOM PERMANENT MENU BUTTON FOR MOBILE -->
+<script>
+(function() {
+    let menuBtn;
+    
+    function createMenuButton() {
+        if (menuBtn) return;
+        
+        menuBtn = document.createElement('button');
+        menuBtn.innerHTML = '<span style="font-size: 28px; display: block;">☰</span><span style="font-size: 16px; display: block; margin-top: 4px; color: #FF0000; font-weight: 900;">MENU</span>';
+        menuBtn.id = 'customMenuBtn';
+        menuBtn.style.cssText = `
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 999999;
+            background: white;
+            border: 4px solid #FF0000;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 40px rgba(255,0,0,0.8), 0 0 60px rgba(255,0,0,0.5);
+            text-align: center;
+            font-family: 'Scope One', serif;
+            display: none;
+        `;
+        
+        document.body.appendChild(menuBtn);
+        
+        menuBtn.addEventListener('click', function() {
+            const collapseBtn = document.querySelector('button[kind="header"]');
+            if (collapseBtn) {
+                collapseBtn.click();
+            }
+        });
+        
+        checkSize();
+    }
+    
+    function checkSize() {
+        if (!menuBtn) return;
+        if (window.innerWidth <= 768) {
+            menuBtn.style.display = 'block';
+        } else {
+            menuBtn.style.display = 'none';
+        }
+    }
+    
+    // Wait for Streamlit to fully load
+    const observer = new MutationObserver(function() {
+        if (document.body) {
+            createMenuButton();
+            observer.disconnect();
+        }
+    });
+    
+    if (document.body) {
+        createMenuButton();
+    } else {
+        observer.observe(document.documentElement, { childList: true });
+    }
+    
+    window.addEventListener('resize', checkSize);
+})();
+</script>
 
 <div class="creator-badge">Jonathan Sanchez</div>
 """, unsafe_allow_html=True)
