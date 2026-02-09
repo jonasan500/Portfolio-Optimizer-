@@ -149,18 +149,31 @@ st.markdown("""
         visibility: hidden;
     }
     
-    /* Sidebar Toggle Button - Make it visible and styled */
-    button[kind="header"] {
-        background-color: #540001 !important;
+    /* SIDEBAR TOGGLE ONLY - BRIGHT RED MENU BUTTON */
+    button[kind="header"][data-testid="collapsedControl"] {
+        background-color: #FF0000 !important;
         color: #ffffff !important;
-        border: 2px solid #ffffff !important;
-        padding: 8px 12px !important;
-        font-size: 18px !important;
-        border-radius: 4px !important;
+        border: 4px solid #ffffff !important;
+        padding: 14px 28px !important;
+        font-size: 20px !important;
+        font-weight: 900 !important;
+        box-shadow: 0 0 30px rgba(255, 0, 0, 1) !important;
+        border-radius: 8px !important;
     }
     
-    button[kind="header"]:hover {
-        background-color: #6B0F1A !important;
+    button[kind="header"][data-testid="collapsedControl"] span {
+        display: none !important;
+    }
+    
+    button[kind="header"][data-testid="collapsedControl"]::after {
+        content: "☰ MENU" !important;
+        font-size: 18px !important;
+        font-weight: 900 !important;
+    }
+    
+    button[kind="header"][data-testid="collapsedControl"]:hover {
+        background-color: #CC0000 !important;
+        transform: scale(1.1) !important;
     }
 
     /* Mobile Responsive Fixes */
@@ -238,18 +251,14 @@ st.markdown("""
             padding: 10px !important;
         }
         
-        /* Make sidebar toggle MORE visible on mobile */
-        button[kind="header"] {
-            display: block !important;
+        /* SIDEBAR TOGGLE ON MOBILE - ULTRA VISIBLE */
+        button[kind="header"][data-testid="collapsedControl"] {
             position: fixed !important;
-            top: 10px !important;
-            left: 10px !important;
-            z-index: 1000 !important;
-            background-color: #540001 !important;
-            color: #ffffff !important;
-            border: 2px solid #ffffff !important;
-            padding: 10px 14px !important;
-            font-size: 20px !important;
+            top: 70px !important;
+            left: 15px !important;
+            z-index: 99999 !important;
+            padding: 16px 32px !important;
+            font-size: 22px !important;
         }
     }
 </style>
