@@ -528,4 +528,3 @@ if st.session_state.optimization_results is not None:
 
 else:
     st.info("👈 Configure settings and click 'Optimize Portfolio'")
-```
