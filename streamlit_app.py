@@ -263,24 +263,20 @@ st.markdown("""
         if (menuBtn) return;
         
         menuBtn = document.createElement('button');
-        menuBtn.innerHTML = '☰<br>MENU';
+        menuBtn.innerHTML = '<span style="font-size: 28px; display: block;">☰</span><span style="font-size: 16px; display: block; margin-top: 4px; color: #FF0000; font-weight: 900;">MENU</span>';
         menuBtn.id = 'customMenuBtn';
         menuBtn.style.cssText = `
             position: fixed;
             top: 15px;
             left: 15px;
             z-index: 999999;
-            background: #FF0000;
-            color: white;
-            border: 4px solid white;
-            padding: 14px 24px;
-            font-size: 20px;
-            font-weight: 900;
+            background: white;
+            border: 4px solid #FF0000;
+            padding: 12px 20px;
             border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 0 40px rgba(255,0,0,1), 0 0 60px rgba(255,0,0,0.6);
+            box-shadow: 0 0 40px rgba(255,0,0,0.8), 0 0 60px rgba(255,0,0,0.5);
             text-align: center;
-            line-height: 1.4;
             font-family: 'Scope One', serif;
             display: none;
         `;
@@ -354,7 +350,7 @@ with col2:
 
 st.sidebar.subheader("3. Historical Data")
 lookback_years = st.sidebar.slider("Years of history", 3, 20, LOOKBACK_YEARS)
-num_portfolios = st.slider("Portfolios to test", 1000, 50000, NUM_PORTFOLIOS, 1000)
+num_portfolios = st.sidebar.slider("Portfolios to test", 1000, 50000, NUM_PORTFOLIOS, 1000)
 
 optimize_button = st.sidebar.button("🚀 Optimize Portfolio", type="primary")
 
