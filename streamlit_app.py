@@ -7,22 +7,24 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from src.data_pipeline import fetch_price_data, calculate_returns, calculate_annual_stats, validate_tickers
-from src.portfolio_engine import generate_random_portfolios, portfolio_stats, monte_carlo_portfolio
+from src.portfolio_engine import generate_random_portfolios, monte_carlo_portfolio
 from src.config import TICKERS, LOOKBACK_YEARS, NUM_PORTFOLIOS
 
 # Initialize session state
-if 'optimization_results' not in st.session_state:
+if "optimization_results" not in st.session_state:
     st.session_state.optimization_results = None
 
 # Page configuration
 st.set_page_config(
     page_title="Portfolio Optimizer by Jonathan Sanchez",
     page_icon="📊",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed",  # ✅ native default collapse
 )
 
-# Custom CSS
-st.markdown("""
+# Custom CSS + JS (sidebar toggle that doesn't depend on Streamlit's internal buttons)
+st.markdown(
+    """
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Scope+One&display=swap');
@@ -39,6 +41,13 @@ st.markdown("""
     [data-testid="stSidebar"] {
         background-color: #000000;
         border-right: 1px solid #333333;
+        transition: transform 0.25s ease !important;
+        will-change: transform;
+    }
+
+    /* ✅ Sidebar hidden (we toggle this class on <body>) */
+    body.sidebar-hidden [data-testid="stSidebar"] {
+        transform: translateX(-110%) !important;
     }
 
     .stApp, p, span, label, div, li {
@@ -90,36 +99,34 @@ st.markdown("""
         color: #ffffff !important;
         border: 1px solid #333333 !important;
     }
-    
-    /* Fix dropdown visibility - CRITICAL FIX */
+
+    /* Fix dropdown visibility */
     [data-baseweb="select"] {
         background-color: #1a1a1a !important;
     }
-    
+
     [data-baseweb="select"] > div {
         background-color: #1a1a1a !important;
         color: #ffffff !important;
         border: 1px solid #540001 !important;
     }
-    
-    /* Dropdown menu items */
+
     [role="listbox"] {
         background-color: #1a1a1a !important;
         border: 1px solid #540001 !important;
     }
-    
+
     [role="option"] {
         background-color: #1a1a1a !important;
         color: #ffffff !important;
         padding: 8px !important;
     }
-    
+
     [role="option"]:hover {
         background-color: #540001 !important;
         color: #ffffff !important;
     }
-    
-    /* Number input visibility */
+
     input[type="number"] {
         background-color: #1a1a1a !important;
         color: #ffffff !important;
@@ -148,123 +155,90 @@ st.markdown("""
     #MainMenu, footer, [data-testid="stStatusWidget"] {
         visibility: hidden;
     }
-    
-    /* Sidebar Toggle Button - Make it visible and styled */
-    button[kind="header"] {
-        background-color: #540001 !important;
-        color: #ffffff !important;
-        border: 2px solid #ffffff !important;
-        padding: 8px 12px !important;
-        font-size: 18px !important;
-        border-radius: 4px !important;
-    }
-    
-    button[kind="header"]:hover {
-        background-color: #6B0F1A !important;
-    }
 
     /* Mobile Responsive Fixes */
     @media only screen and (max-width: 768px) {
-        /* Force proper mobile layout */
         .main .block-container {
             padding: 0.5rem !important;
             max-width: 100vw !important;
         }
-        
-        /* Full width buttons on mobile */
+
         .stButton>button {
             width: 100% !important;
             padding: 14px 20px !important;
             font-size: 16px !important;
             margin: 10px 0 !important;
         }
-        
-        /* Readable metrics on mobile */
-        [data-testid="stMetricValue"] {
-            font-size: 20px !important;
-        }
-        
-        [data-testid="stMetricLabel"] {
-            font-size: 11px !important;
-        }
-        
-        /* Smaller headings on mobile */
+
+        [data-testid="stMetricValue"] { font-size: 20px !important; }
+        [data-testid="stMetricLabel"] { font-size: 11px !important; }
+
         h1 { font-size: 1.5rem !important; }
         h2 { font-size: 1.3rem !important; }
         h3 { font-size: 1.1rem !important; }
-        
-        /* Readable text on mobile */
+
         p, div, span, label, li { font-size: 13px !important; }
-        
-        /* Fit charts to screen */
+
         canvas, [data-testid="stImage"] {
             max-width: 100% !important;
             width: 100% !important;
             height: auto !important;
         }
-        
-        /* Better sidebar on mobile */
+
         [data-testid="stSidebar"] {
             width: 100% !important;
         }
-        
-        /* Scrollable tables on mobile */
+
         [data-testid="stDataFrame"] {
             overflow-x: auto !important;
             font-size: 11px !important;
         }
-        
-        /* Full width inputs on mobile */
+
         input, textarea, select {
             width: 100% !important;
             font-size: 16px !important;
         }
-        
-        /* Stack columns on mobile */
+
         [data-testid="column"] {
             width: 100% !important;
             min-width: 100% !important;
             flex: 1 1 100% !important;
         }
-        
-        /* Hide creator badge on mobile */
-        .creator-badge {
-            display: none !important;
-        }
-        
-        /* Better info boxes on mobile */
+
+        .creator-badge { display: none !important; }
+
         .stInfo, .stSuccess, .stWarning, .stError {
             font-size: 13px !important;
             padding: 10px !important;
         }
-        
-        /* Make sidebar toggle MORE visible on mobile */
-        button[kind="header"] {
-            display: block !important;
-            position: fixed !important;
-            top: 10px !important;
-            left: 10px !important;
-            z-index: 1000 !important;
-            background-color: #540001 !important;
-            color: #ffffff !important;
-            border: 2px solid #ffffff !important;
-            padding: 10px 14px !important;
-            font-size: 20px !important;
-        }
     }
 </style>
 
-<!-- CUSTOM PERMANENT MENU BUTTON FOR MOBILE -->
 <script>
 (function() {
     let menuBtn;
-    
+
+    function toggleSidebar() {
+        document.body.classList.toggle("sidebar-hidden");
+    }
+
+    function ensureHiddenOnMobile() {
+        if (window.innerWidth <= 768) {
+            document.body.classList.add("sidebar-hidden");
+        } else {
+            document.body.classList.remove("sidebar-hidden");
+        }
+    }
+
     function createMenuButton() {
         if (menuBtn) return;
-        
+
         menuBtn = document.createElement('button');
-        menuBtn.innerHTML = '<span style="font-size: 28px; display: block;">☰</span><span style="font-size: 16px; display: block; margin-top: 4px; color: #FF0000; font-weight: 900;">MENU</span>';
         menuBtn.id = 'customMenuBtn';
+        menuBtn.innerHTML =
+          '<div style="font-size: 28px; line-height: 1;">☰</div>' +
+          '<div style="font-size: 14px; margin-top: 4px; color: #FF0000; font-weight: 900;">MENU</div>';
+
         menuBtn.style.cssText = `
             position: fixed;
             top: 15px;
@@ -272,68 +246,60 @@ st.markdown("""
             z-index: 999999;
             background: white;
             border: 4px solid #FF0000;
-            padding: 12px 20px;
+            padding: 12px 18px;
             border-radius: 8px;
             cursor: pointer;
             box-shadow: 0 0 40px rgba(255,0,0,0.8), 0 0 60px rgba(255,0,0,0.5);
             text-align: center;
             font-family: 'Scope One', serif;
             display: none;
+            user-select: none;
         `;
-        
+
         document.body.appendChild(menuBtn);
-        
-        menuBtn.addEventListener('click', function() {
-            const collapseBtn = document.querySelector('button[kind="header"]');
-            if (collapseBtn) {
-                collapseBtn.click();
-            }
-        });
-        
-        checkSize();
+        menuBtn.addEventListener('click', toggleSidebar);
+
+        syncButtonVisibility();
+        ensureHiddenOnMobile();
     }
-    
-    function checkSize() {
+
+    function syncButtonVisibility() {
         if (!menuBtn) return;
-        if (window.innerWidth <= 768) {
-            menuBtn.style.display = 'block';
-        } else {
-            menuBtn.style.display = 'none';
-        }
+        menuBtn.style.display = (window.innerWidth <= 768) ? 'block' : 'none';
     }
-    
-    // Wait for Streamlit to fully load
-    const observer = new MutationObserver(function() {
-        if (document.body) {
+
+    // Wait for Streamlit to mount sidebar element
+    const ready = setInterval(() => {
+        if (document.body && document.querySelector('[data-testid="stSidebar"]')) {
+            clearInterval(ready);
             createMenuButton();
-            observer.disconnect();
         }
+    }, 50);
+
+    window.addEventListener('resize', () => {
+        syncButtonVisibility();
+        ensureHiddenOnMobile();
     });
-    
-    if (document.body) {
-        createMenuButton();
-    } else {
-        observer.observe(document.documentElement, { childList: true });
-    }
-    
-    window.addEventListener('resize', checkSize);
 })();
 </script>
 
 <div class="creator-badge">Jonathan Sanchez</div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Title and description
-st.markdown("""
+st.markdown(
+    """
 <div style='border-bottom: 1px solid #333333; padding-bottom: 20px; margin-bottom: 30px;'>
-    <h1 style='font-size: 32px; margin-bottom: 8px;'>
-        Sharpe Ratio Portfolio Optimizer
-    </h1>
+    <h1 style='font-size: 32px; margin-bottom: 8px;'>Sharpe Ratio Portfolio Optimizer</h1>
     <p style='color: #999999; font-size: 14px; margin: 0;'>
         Quantitative portfolio optimization using Modern Portfolio Theory
     </p>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Sidebar
 st.sidebar.header("⚙️ Portfolio Settings")
@@ -384,27 +350,28 @@ if optimize_button:
 
             status_text.text(f"🔄 Testing {num_portfolios:,} portfolios...")
             progress_bar.progress(70)
-            results = generate_random_portfolios(annual_return, annual_cov, num_portfolios,
-                                                 min_position, max_position)
+            results = generate_random_portfolios(
+                annual_return, annual_cov, num_portfolios, min_position, max_position
+            )
 
-            max_sharpe_idx = np.argmax(results['sharpe'])
-            min_vol_idx = np.argmin(results['volatility'])
+            max_sharpe_idx = int(np.argmax(results["sharpe"]))
+            min_vol_idx = int(np.argmin(results["volatility"]))
 
             progress_bar.progress(100)
             status_text.text("✅ Complete!")
 
             st.session_state.optimization_results = {
-                'results': results,
-                'max_sharpe_idx': max_sharpe_idx,
-                'min_vol_idx': min_vol_idx,
-                'annual_return': annual_return,
-                'annual_cov': annual_cov,
-                'annual_volatility': annual_volatility,
-                'valid_tickers': valid_tickers,
-                'lookback_years': lookback_years,
-                'num_portfolios': num_portfolios,
-                'min_position': min_position,
-                'max_position': max_position
+                "results": results,
+                "max_sharpe_idx": max_sharpe_idx,
+                "min_vol_idx": min_vol_idx,
+                "annual_return": annual_return,
+                "annual_cov": annual_cov,
+                "annual_volatility": annual_volatility,
+                "valid_tickers": valid_tickers,
+                "lookback_years": lookback_years,
+                "num_portfolios": num_portfolios,
+                "min_position": min_position,
+                "max_position": max_position,
             }
 
         except Exception as e:
@@ -413,13 +380,13 @@ if optimize_button:
 # Results
 if st.session_state.optimization_results is not None:
     stored = st.session_state.optimization_results
-    results = stored['results']
-    max_sharpe_idx = stored['max_sharpe_idx']
-    min_vol_idx = stored['min_vol_idx']
-    annual_return = stored['annual_return']
-    annual_cov = stored['annual_cov']
-    annual_volatility = stored['annual_volatility']
-    valid_tickers = stored['valid_tickers']
+    results = stored["results"]
+    max_sharpe_idx = stored["max_sharpe_idx"]
+    min_vol_idx = stored["min_vol_idx"]
+    annual_return = stored["annual_return"]
+    annual_cov = stored["annual_cov"]
+    annual_volatility = stored["annual_volatility"]
+    valid_tickers = stored["valid_tickers"]
 
     st.success("🎯 Optimization Complete!")
 
@@ -432,53 +399,83 @@ if st.session_state.optimization_results is not None:
         st.metric("Sharpe Ratio", f"{results['sharpe'][max_sharpe_idx]:.3f}")
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["📈 Efficient Frontier", "💼 Portfolio", "🎲 Monte Carlo", "📊 Assets", "ℹ️ About"])
+        ["📈 Efficient Frontier", "💼 Portfolio", "🎲 Monte Carlo", "📊 Assets", "ℹ️ About"]
+    )
 
     with tab1:
         st.subheader("Efficient Frontier")
-        fig, ax = plt.subplots(figsize=(10, 6), facecolor='#000000')
-        ax.set_facecolor('#000000')
+        fig, ax = plt.subplots(figsize=(10, 6), facecolor="#000000")
+        ax.set_facecolor("#000000")
 
-        returns_pct = results['returns'] * 100
-        volatility_pct = results['volatility'] * 100
+        returns_pct = results["returns"] * 100
+        volatility_pct = results["volatility"] * 100
 
-        scatter = ax.scatter(volatility_pct, returns_pct, c=results['sharpe'], cmap='plasma',
-                             alpha=0.7, s=15)
+        scatter = ax.scatter(
+            volatility_pct,
+            returns_pct,
+            c=results["sharpe"],
+            cmap="plasma",
+            alpha=0.7,
+            s=15,
+        )
         cbar = plt.colorbar(scatter, ax=ax)
-        cbar.set_label('Sharpe', color='#fff')
-        cbar.ax.tick_params(colors='#fff')
+        cbar.set_label("Sharpe", color="#fff")
+        cbar.ax.tick_params(colors="#fff")
 
-        ax.scatter(volatility_pct[max_sharpe_idx], returns_pct[max_sharpe_idx],
-                   color='#0f0', s=400, marker='*', edgecolors='#fff', linewidths=2, label='Max Sharpe')
-        ax.scatter(volatility_pct[min_vol_idx], returns_pct[min_vol_idx],
-                   color='#0bf', s=250, marker='D', edgecolors='#fff', linewidths=2, label='Min Vol')
+        ax.scatter(
+            volatility_pct[max_sharpe_idx],
+            returns_pct[max_sharpe_idx],
+            color="#0f0",
+            s=400,
+            marker="*",
+            edgecolors="#fff",
+            linewidths=2,
+            label="Max Sharpe",
+        )
+        ax.scatter(
+            volatility_pct[min_vol_idx],
+            returns_pct[min_vol_idx],
+            color="#0bf",
+            s=250,
+            marker="D",
+            edgecolors="#fff",
+            linewidths=2,
+            label="Min Vol",
+        )
 
-        ax.set_title('Efficient Frontier', fontsize=16, color='#fff', pad=20)
-        ax.set_xlabel('Volatility (%)', fontsize=13, color='#fff')
-        ax.set_ylabel('Return (%)', fontsize=13, color='#fff')
-        ax.tick_params(colors='#fff', labelsize=11)
-        ax.legend(loc='lower right', facecolor='#1a1a1a', edgecolor='#fff', labelcolor='#fff')
-        ax.grid(True, alpha=0.3, color='#444')
-
+        ax.set_title("Efficient Frontier", fontsize=16, color="#fff", pad=20)
+        ax.set_xlabel("Volatility (%)", fontsize=13, color="#fff")
+        ax.set_ylabel("Return (%)", fontsize=13, color="#fff")
+        ax.tick_params(colors="#fff", labelsize=11)
+        ax.legend(
+            loc="lower right",
+            facecolor="#1a1a1a",
+            edgecolor="#fff",
+            labelcolor="#fff",
+        )
+        ax.grid(True, alpha=0.3, color="#444")
         st.pyplot(fig)
 
     with tab2:
         st.subheader("Portfolio Allocation")
 
-        optimal_weights = results['weights'][max_sharpe_idx]
-        allocation_df = pd.DataFrame({
-            'Ticker': valid_tickers,
-            'Weight': optimal_weights * 100
-        }).sort_values('Weight', ascending=False)
+        optimal_weights = results["weights"][max_sharpe_idx]
+        allocation_df = pd.DataFrame({"Ticker": valid_tickers, "Weight": optimal_weights * 100}).sort_values(
+            "Weight", ascending=False
+        )
+        st.dataframe(allocation_df.style.format({"Weight": "{:.1f}%"}), hide_index=True)
 
-        st.dataframe(allocation_df.style.format({'Weight': '{:.1f}%'}), hide_index=True)
-
-        fig, ax = plt.subplots(figsize=(7, 7), facecolor='#000')
-        ax.set_facecolor('#000')
-        colors = ['#F66', '#4EC', '#45B', '#FA7', '#98D', '#F7D']
-        ax.pie(optimal_weights, labels=valid_tickers, autopct='%1.1f%%',
-               colors=colors[:len(valid_tickers)], textprops={'color': '#fff', 'fontsize': 12})
-        ax.set_title('Portfolio Allocation', fontsize=16, color='#fff', pad=20)
+        fig, ax = plt.subplots(figsize=(7, 7), facecolor="#000")
+        ax.set_facecolor("#000")
+        colors = ["#F66", "#4EC", "#45B", "#FA7", "#98D", "#F7D"]
+        ax.pie(
+            optimal_weights,
+            labels=valid_tickers,
+            autopct="%1.1f%%",
+            colors=colors[: len(valid_tickers)],
+            textprops={"color": "#fff", "fontsize": 12},
+        )
+        ax.set_title("Portfolio Allocation", fontsize=16, color="#fff", pad=20)
         st.pyplot(fig)
 
     with tab3:
@@ -494,11 +491,14 @@ if st.session_state.optimization_results is not None:
 
         if st.button("🎲 Run Simulation", type="primary"):
             with st.spinner("Running..."):
-                mc_res = monte_carlo_portfolio(results['weights'][max_sharpe_idx],
-                                               annual_return, annual_cov,
-                                               time_horizon=horizon,
-                                               num_simulations=mc_sims,
-                                               initial_investment=invest)
+                mc_res = monte_carlo_portfolio(
+                    results["weights"][max_sharpe_idx],
+                    annual_return,
+                    annual_cov,
+                    time_horizon=horizon,
+                    num_simulations=mc_sims,
+                    initial_investment=invest,
+                )
 
                 st.success("✅ Complete!")
 
@@ -509,79 +509,78 @@ if st.session_state.optimization_results is not None:
                 c4.metric("Expected", f"${np.mean(mc_res['final_values']):,.0f}")
 
                 # Paths Chart
-                fig, ax = plt.subplots(figsize=(10, 6), facecolor='#000')
-                ax.set_facecolor('#000')
+                fig, ax = plt.subplots(figsize=(10, 6), facecolor="#000")
+                ax.set_facecolor("#000")
 
-                for i in range(min(200, len(mc_res['paths']))):
-                    ax.plot(mc_res['paths'][i], alpha=0.3, linewidth=0.5, color='#fff')
+                for i in range(min(200, len(mc_res["paths"]))):
+                    ax.plot(mc_res["paths"][i], alpha=0.3, linewidth=0.5, color="#fff")
 
-                median = np.median(mc_res['paths'], axis=0)
-                ax.plot(median, color='#0f0', linewidth=3.5, label='Median')
-                ax.axhline(invest, color='#fd0', linestyle='--', linewidth=2.5, label='Initial')
+                median = np.median(mc_res["paths"], axis=0)
+                ax.plot(median, color="#0f0", linewidth=3.5, label="Median")
+                ax.axhline(invest, color="#fd0", linestyle="--", linewidth=2.5, label="Initial")
 
-                ax.set_title(f'Monte Carlo: {mc_sims:,} Simulations ({horizon}Y)',
-                             fontsize=15, color='#fff', pad=15)
-                ax.set_xlabel('Days', fontsize=12, color='#fff')
-                ax.set_ylabel('Value ($)', fontsize=12, color='#fff')
-                ax.tick_params(colors='#fff')
-                ax.legend(facecolor='#1a1a1a', labelcolor='#fff')
-                ax.grid(True, alpha=0.3, color='#444')
+                ax.set_title(f"Monte Carlo: {mc_sims:,} Simulations ({horizon}Y)", fontsize=15, color="#fff", pad=15)
+                ax.set_xlabel("Days", fontsize=12, color="#fff")
+                ax.set_ylabel("Value ($)", fontsize=12, color="#fff")
+                ax.tick_params(colors="#fff")
+                ax.legend(facecolor="#1a1a1a", labelcolor="#fff")
+                ax.grid(True, alpha=0.3, color="#444")
                 st.pyplot(fig)
 
                 # Distribution
-                fig, ax = plt.subplots(figsize=(10, 5), facecolor='#000')
-                ax.set_facecolor('#000')
+                fig, ax = plt.subplots(figsize=(10, 5), facecolor="#000")
+                ax.set_facecolor("#000")
 
-                rets = mc_res['returns'] * 100
-                ax.hist(rets, bins=40, alpha=0.8, color='#4EC', edgecolor='#fff')
+                rets = mc_res["returns"] * 100
+                ax.hist(rets, bins=40, alpha=0.8, color="#4EC", edgecolor="#fff")
 
                 percs = [5, 25, 50, 75, 95]
-                cols = ['#F66', '#FA7', '#fd0', '#9e9', '#0f0']
+                cols = ["#F66", "#FA7", "#fd0", "#9e9", "#0f0"]
 
                 for p, col in zip(percs, cols):
                     val = np.percentile(rets, p)
-                    ax.axvline(val, color=col, linestyle='--', linewidth=2.5,
-                               label=f'{p}th: {val:.1f}%')
+                    ax.axvline(val, color=col, linestyle="--", linewidth=2.5, label=f"{p}th: {val:.1f}%")
 
-                ax.set_title('Return Distribution', fontsize=15, color='#fff', pad=15)
-                ax.set_xlabel('Return (%)', fontsize=12, color='#fff')
-                ax.set_ylabel('Frequency', fontsize=12, color='#fff')
-                ax.tick_params(colors='#fff')
-                ax.legend(facecolor='#1a1a1a', labelcolor='#fff', fontsize=9)
-                ax.grid(True, alpha=0.25, axis='y', color='#444')
+                ax.set_title("Return Distribution", fontsize=15, color="#fff", pad=15)
+                ax.set_xlabel("Return (%)", fontsize=12, color="#fff")
+                ax.set_ylabel("Frequency", fontsize=12, color="#fff")
+                ax.tick_params(colors="#fff")
+                ax.legend(facecolor="#1a1a1a", labelcolor="#fff", fontsize=9)
+                ax.grid(True, alpha=0.25, axis="y", color="#444")
                 st.pyplot(fig)
 
     with tab4:
         st.subheader("Individual Assets")
 
-        assets_df = pd.DataFrame({
-            'Ticker': valid_tickers,
-            'Return (%)': annual_return.values * 100,
-            'Volatility (%)': annual_volatility.values * 100,
-            'Sharpe': annual_return.values / annual_volatility.values
-        }).sort_values('Sharpe', ascending=False)
+        assets_df = pd.DataFrame(
+            {
+                "Ticker": valid_tickers,
+                "Return (%)": annual_return.values * 100,
+                "Volatility (%)": annual_volatility.values * 100,
+                "Sharpe": annual_return.values / annual_volatility.values,
+            }
+        ).sort_values("Sharpe", ascending=False)
 
-        st.dataframe(assets_df.style.format({
-            'Return (%)': '{:.2f}%',
-            'Volatility (%)': '{:.2f}%',
-            'Sharpe': '{:.3f}'
-        }), hide_index=True)
+        st.dataframe(
+            assets_df.style.format({"Return (%)": "{:.2f}%", "Volatility (%)": "{:.2f}%", "Sharpe": "{:.3f}"}),
+            hide_index=True,
+        )
 
-        fig, ax = plt.subplots(figsize=(9, 5), facecolor='#000')
-        ax.set_facecolor('#000')
+        fig, ax = plt.subplots(figsize=(9, 5), facecolor="#000")
+        ax.set_facecolor("#000")
 
         x = np.arange(len(valid_tickers))
-        ax.bar(x - 0.175, annual_return.values * 100, 0.35, label='Return', color='#0f0', alpha=0.8)
-        ax.bar(x + 0.175, annual_volatility.values * 100, 0.35, label='Volatility', color='#F66', alpha=0.8)
+        ax.bar(x - 0.175, annual_return.values * 100, 0.35, label="Return", color="#0f0", alpha=0.8)
+        ax.bar(x + 0.175, annual_volatility.values * 100, 0.35, label="Volatility", color="#F66", alpha=0.8)
 
-        ax.set_xlabel('Asset', color='#fff')
-        ax.set_ylabel('Percentage (%)', color='#fff')
-        ax.set_title('Risk vs Return', fontsize=15, color='#fff', pad=15)
+        ax.set_xlabel("Asset", color="#fff")
+        ax.set_ylabel("Percentage (%)", color="#fff")
+        ax.set_title("Risk vs Return", fontsize=15, color="#fff", pad=15)
         ax.set_xticks(x)
-        ax.set_xticklabels(valid_tickers, color='#fff')
-        ax.tick_params(colors='#fff')
-        ax.legend(facecolor='#1a1a1a', labelcolor='#fff')
-        ax.grid(True, alpha=0.25, axis='y', color='#444')
+        ax.set_xticklabels(valid_tickers, color="#fff")
+        ax.tick_params(colors="#fff")
+        ax.legend(facecolor="#1a1a1a", labelcolor="#fff")
+        ax.grid(True, alpha=0.25, axis="y", color="#444")
         st.pyplot(fig)
 
     with tab5:
@@ -589,8 +588,9 @@ if st.session_state.optimization_results is not None:
         st.write("Modern Portfolio Theory optimization for maximum Sharpe ratio.")
         st.error("**NOT financial advice.** Educational purposes only.")
         st.markdown("---")
-        st.markdown("<p style='text-align: center; color: #999;'>Created by Jonathan Sanchez • 2026</p>",
-                    unsafe_allow_html=True)
-
+        st.markdown(
+            "<p style='text-align: center; color: #999;'>Created by Jonathan Sanchez • 2026</p>",
+            unsafe_allow_html=True,
+        )
 else:
     st.info("👈 Configure settings and click 'Optimize Portfolio'")
