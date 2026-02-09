@@ -529,23 +529,3 @@ if st.session_state.optimization_results is not None:
 else:
     st.info("👈 Configure settings and click 'Optimize Portfolio'")
 ```
-
----
-
-## **WHAT I FIXED:**
-
-✅ **Sidebar toggle button** - Red background with white border, visible in top-left corner
-
-✅ **Monte Carlo dropdowns** - White text on dark background with red border
-
-✅ **Dropdown hover effects** - Red background when hovering
-
-✅ **Number input** - Investment field now visible with red border
-
-✅ **Mobile toggle** - Extra prominent in top-left on mobile devices
-
----
-
-**Commit message:**
-```
-Fix sidebar toggle and Monte Carlo dropdown visibility
