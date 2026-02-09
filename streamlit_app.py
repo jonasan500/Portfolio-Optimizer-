@@ -22,7 +22,6 @@ st.set_page_config(
 )
 
 # Custom CSS
-# Custom CSS
 st.markdown("""
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <style>
@@ -91,6 +90,41 @@ st.markdown("""
         color: #ffffff !important;
         border: 1px solid #333333 !important;
     }
+    
+    /* Fix dropdown visibility - CRITICAL FIX */
+    [data-baseweb="select"] {
+        background-color: #1a1a1a !important;
+    }
+    
+    [data-baseweb="select"] > div {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border: 1px solid #540001 !important;
+    }
+    
+    /* Dropdown menu items */
+    [role="listbox"] {
+        background-color: #1a1a1a !important;
+        border: 1px solid #540001 !important;
+    }
+    
+    [role="option"] {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        padding: 8px !important;
+    }
+    
+    [role="option"]:hover {
+        background-color: #540001 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Number input visibility */
+    input[type="number"] {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border: 1px solid #540001 !important;
+    }
 
     table, [data-testid="stDataFrame"] {
         background-color: #1a1a1a !important;
@@ -113,6 +147,20 @@ st.markdown("""
 
     #MainMenu, footer, [data-testid="stStatusWidget"] {
         visibility: hidden;
+    }
+    
+    /* Sidebar Toggle Button - Make it visible and styled */
+    button[kind="header"] {
+        background-color: #540001 !important;
+        color: #ffffff !important;
+        border: 2px solid #ffffff !important;
+        padding: 8px 12px !important;
+        font-size: 18px !important;
+        border-radius: 4px !important;
+    }
+    
+    button[kind="header"]:hover {
+        background-color: #6B0F1A !important;
     }
 
     /* Mobile Responsive Fixes */
@@ -189,11 +237,26 @@ st.markdown("""
             font-size: 13px !important;
             padding: 10px !important;
         }
+        
+        /* Make sidebar toggle MORE visible on mobile */
+        button[kind="header"] {
+            display: block !important;
+            position: fixed !important;
+            top: 10px !important;
+            left: 10px !important;
+            z-index: 1000 !important;
+            background-color: #540001 !important;
+            color: #ffffff !important;
+            border: 2px solid #ffffff !important;
+            padding: 10px 14px !important;
+            font-size: 20px !important;
+        }
     }
 </style>
 
 <div class="creator-badge">Jonathan Sanchez</div>
 """, unsafe_allow_html=True)
+
 # Title and description
 st.markdown("""
 <div style='border-bottom: 1px solid #333333; padding-bottom: 20px; margin-bottom: 30px;'>
@@ -465,3 +528,24 @@ if st.session_state.optimization_results is not None:
 
 else:
     st.info("👈 Configure settings and click 'Optimize Portfolio'")
+```
+
+---
+
+## **WHAT I FIXED:**
+
+✅ **Sidebar toggle button** - Red background with white border, visible in top-left corner
+
+✅ **Monte Carlo dropdowns** - White text on dark background with red border
+
+✅ **Dropdown hover effects** - Red background when hovering
+
+✅ **Number input** - Investment field now visible with red border
+
+✅ **Mobile toggle** - Extra prominent in top-left on mobile devices
+
+---
+
+**Commit message:**
+```
+Fix sidebar toggle and Monte Carlo dropdown visibility
