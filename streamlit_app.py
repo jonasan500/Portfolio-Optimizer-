@@ -178,7 +178,7 @@ with bcol1:
     if st.button("🚀 BEGIN", type="primary"):
         st.session_state.panel_open = not st.session_state.panel_open
 with bcol2:
-    st.caption("Tap **BEGIN** to open/close settings. (This replaces the sidebar so it works everywhere.)")
+    st.caption("Tap **BEGIN** to open/close settings.")
 
 st.markdown("---")
 
