@@ -110,7 +110,66 @@ st.markdown("""
     }
 
     #MainMenu, footer, [data-testid="stStatusWidget"] {
+        #MainMenu, footer, [data-testid="stStatusWidget"] {
         visibility: hidden;
+    }
+
+    /* Mobile Responsive Fixes */
+    @media only screen and (max-width: 768px) {
+        .main .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            max-width: 100% !important;
+        }
+        
+        .stButton>button {
+            width: 100% !important;
+            padding: 14px 20px !important;
+            font-size: 16px !important;
+            margin: 10px 0 !important;
+        }
+        
+        [data-testid="stMetricValue"] {
+            font-size: 22px !important;
+        }
+        
+        [data-testid="stMetricLabel"] {
+            font-size: 11px !important;
+        }
+        
+        h1 { font-size: 1.8rem !important; }
+        h2 { font-size: 1.5rem !important; }
+        h3 { font-size: 1.3rem !important; }
+        
+        p, div, span, label { font-size: 14px !important; }
+        
+        canvas, [data-testid="stImage"] {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        
+        [data-testid="stSidebar"] {
+            width: 100% !important;
+        }
+        
+        [data-testid="stDataFrame"] {
+            overflow-x: auto !important;
+            font-size: 12px !important;
+        }
+        
+        input, textarea, select {
+            width: 100% !important;
+            font-size: 16px !important;
+        }
+        
+        [data-testid="column"] {
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+        
+        .creator-badge {
+            display: none !important;
+        }
     }
 </style>
 
