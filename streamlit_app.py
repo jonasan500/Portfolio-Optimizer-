@@ -24,7 +24,7 @@ st.set_page_config(
 )
 
 # ---------------------------
-# CSS (keep here)  ✅ CHANGED: removed the fake transform-hide logic
+# CSS (keep here)
 # ---------------------------
 st.markdown(
     """
@@ -44,6 +44,13 @@ st.markdown(
     [data-testid="stSidebar"] {
         background-color: #000000;
         border-right: 1px solid #333333;
+        transition: transform 0.25s ease !important;
+        will-change: transform;
+    }
+
+    /* ✅ Sidebar hidden (we toggle this class on <body>) */
+    body.sidebar-hidden [data-testid="stSidebar"] {
+        transform: translateX(-110%) !important;
     }
 
     .stApp, p, span, label, div, li {
@@ -216,71 +223,64 @@ st.markdown(
 )
 
 # ---------------------------
-# BEGIN button (reliable): clicks Streamlit's REAL open/close controls
+# JS (must be injected via components.html for Streamlit Cloud reliability)
 # ---------------------------
 components.html(
     """
 <script>
-(function () {
-  function clickFirst(selectors) {
-    for (const sel of selectors) {
-      const el = document.querySelector(sel);
-      if (el) { el.click(); return true; }
-    }
-    return false;
-  }
-
-  function toggleStreamlitSidebar() {
-    // Open sidebar if collapsed
-    const opened = clickFirst([
-      '[data-testid="collapsedControl"]',          // Streamlit collapsed "open sidebar" control
-      '[data-testid="collapsedControl"] button'
-    ]);
-    if (opened) return;
-
-    // Close sidebar if open
-    clickFirst([
-      '[data-testid="stSidebarCollapseButton"]',   // Streamlit sidebar collapse button
-      'button[title="Close sidebar"]',
-      'button[aria-label="Close sidebar"]'
-    ]);
-  }
-
-  function ensureBeginBtn() {
-    if (document.getElementById("beginBtn")) return;
+(function() {
+  function ensureMenuBtn() {
+    if (document.getElementById("customMenuBtn")) return;
 
     const btn = document.createElement("button");
-    btn.id = "beginBtn";
-    btn.textContent = "BEGIN";
+    btn.id = "customMenuBtn";
+    btn.innerHTML = `
+      <div style="font-size:28px; line-height:1;">☰</div>
+      <div style="font-size:14px; margin-top:4px; color:#FF0000; font-weight:900;">MENU</div>
+    `;
 
     btn.style.cssText = `
       position: fixed;
       top: 15px;
       left: 15px;
       z-index: 999999;
-      background: #ffffff;
-      color: #540001;
-      border: 4px solid #540001;
+      background: white;
+      border: 4px solid #FF0000;
       padding: 12px 18px;
       border-radius: 8px;
       cursor: pointer;
-      box-shadow: 0 0 30px rgba(84,0,1,0.55);
-      font-weight: 900;
-      letter-spacing: 1px;
+      box-shadow: 0 0 40px rgba(255,0,0,0.8), 0 0 60px rgba(255,0,0,0.5);
+      text-align: center;
+      display: none;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     `;
 
-    btn.addEventListener("click", toggleStreamlitSidebar);
     document.body.appendChild(btn);
+
+    function toggleSidebar() {
+      document.body.classList.toggle("sidebar-hidden");
+    }
+
+    function sync() {
+      // show on mobile only
+      btn.style.display = (window.innerWidth <= 768) ? "block" : "none";
+
+      // default hidden on mobile
+      if (window.innerWidth <= 768) document.body.classList.add("sidebar-hidden");
+      else document.body.classList.remove("sidebar-hidden");
+    }
+
+    btn.addEventListener("click", toggleSidebar);
+    window.addEventListener("resize", sync);
+    sync();
   }
 
-  // Wait for Streamlit UI to mount; then add the button
+  // wait until Streamlit sidebar exists
   const t = setInterval(() => {
-    if (document.body) {
-      // We don't require sidebar to exist yet; BEGIN can still be added
+    if (document.body && document.querySelector('[data-testid="stSidebar"]')) {
       clearInterval(t);
-      ensureBeginBtn();
+      ensureMenuBtn();
     }
   }, 50);
 })();
