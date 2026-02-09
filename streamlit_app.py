@@ -254,6 +254,76 @@ st.markdown("""
     }
 </style>
 
+<!-- CUSTOM PERMANENT MENU BUTTON FOR MOBILE -->
+<script>
+(function() {
+    let menuBtn;
+    
+    function createMenuButton() {
+        if (menuBtn) return;
+        
+        menuBtn = document.createElement('button');
+        menuBtn.innerHTML = '☰<br>MENU';
+        menuBtn.id = 'customMenuBtn';
+        menuBtn.style.cssText = `
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 999999;
+            background: #FF0000;
+            color: white;
+            border: 4px solid white;
+            padding: 14px 24px;
+            font-size: 20px;
+            font-weight: 900;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 40px rgba(255,0,0,1), 0 0 60px rgba(255,0,0,0.6);
+            text-align: center;
+            line-height: 1.4;
+            font-family: 'Scope One', serif;
+            display: none;
+        `;
+        
+        document.body.appendChild(menuBtn);
+        
+        menuBtn.addEventListener('click', function() {
+            const collapseBtn = document.querySelector('button[kind="header"]');
+            if (collapseBtn) {
+                collapseBtn.click();
+            }
+        });
+        
+        checkSize();
+    }
+    
+    function checkSize() {
+        if (!menuBtn) return;
+        if (window.innerWidth <= 768) {
+            menuBtn.style.display = 'block';
+        } else {
+            menuBtn.style.display = 'none';
+        }
+    }
+    
+    // Wait for Streamlit to fully load
+    const observer = new MutationObserver(function() {
+        if (document.body) {
+            createMenuButton();
+            observer.disconnect();
+        }
+    });
+    
+    if (document.body) {
+        createMenuButton();
+    } else {
+        observer.observe(document.documentElement, { childList: true });
+    }
+    
+    window.addEventListener('resize', checkSize);
+})();
+</script>
+
 <div class="creator-badge">Jonathan Sanchez</div>
 """, unsafe_allow_html=True)
 
@@ -284,7 +354,7 @@ with col2:
 
 st.sidebar.subheader("3. Historical Data")
 lookback_years = st.sidebar.slider("Years of history", 3, 20, LOOKBACK_YEARS)
-num_portfolios = st.sidebar.slider("Portfolios to test", 1000, 50000, NUM_PORTFOLIOS, 1000)
+num_portfolios = st.slider("Portfolios to test", 1000, 50000, NUM_PORTFOLIOS, 1000)
 
 optimize_button = st.sidebar.button("🚀 Optimize Portfolio", type="primary")
 
