@@ -28,7 +28,7 @@ if "panel_open" not in st.session_state:
 
 # Persist inputs so panel can be closed without losing values
 if "ticker_input" not in st.session_state:
-    st.session_state.ticker_input = ", ".join(TICKERS)
+    st.session_state.ticker_input = "IAU, SPY, AAPL, META, AMZN"
 if "min_position" not in st.session_state:
     st.session_state.min_position = 0.05
 if "max_position" not in st.session_state:
