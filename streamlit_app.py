@@ -33,18 +33,12 @@ if "panel_open" not in st.session_state:
     st.session_state.panel_open = False
 
 # Persist inputs so panel can be closed without losing values
-# ✅ IMPORTANT: Streamlit will "remember" old widget values.
-# This migration makes sure existing sessions pick up the new presets.
 if "ticker_input" not in st.session_state:
     st.session_state.ticker_input = DEFAULT_TICKERS
-else:
-    # If the user is still on the old default (from src.config), upgrade to new presets
-    old_default = ", ".join(TICKERS)
-    if st.session_state.ticker_input.strip() == old_default.strip():
-        st.session_state.ticker_input = DEFAULT_TICKERS
-    # If blank for any reason, restore presets
-    if not st.session_state.ticker_input.strip():
-        st.session_state.ticker_input = DEFAULT_TICKERS
+
+if "ticker_widget" not in st.session_state:
+    # ✅ Widget has its own key so Streamlit doesn't “trap” the value as blank
+    st.session_state.ticker_widget = st.session_state.ticker_input
 
 if "min_position" not in st.session_state:
     st.session_state.min_position = 0.05
@@ -218,11 +212,26 @@ with left:
         st.header("⚙️ Portfolio Settings")
 
         st.subheader("1. Select Assets")
-        st.text_input(
+
+        # ✅ Reset button forces preset back into the widget + stored state
+        r1, r2 = st.columns([1, 1])
+        with r1:
+            if st.button("↩️ Reset to Preset"):
+                st.session_state.ticker_widget = DEFAULT_TICKERS
+                st.session_state.ticker_input = DEFAULT_TICKERS
+                st.rerun()
+        with r2:
+            st.caption("")
+
+        # ✅ Separate widget key (ticker_widget), then sync into ticker_input
+        widget_val = st.text_input(
             "Enter tickers (comma-separated)",
-            key="ticker_input",
+            value=st.session_state.ticker_widget,
+            key="ticker_widget",
         )
-        st.caption(f"Preset tickers loaded: **{DEFAULT_TICKERS}**")
+        st.session_state.ticker_input = widget_val
+
+        st.caption(f"Preset tickers: **{DEFAULT_TICKERS}**")
 
         st.subheader("2. Position Limits")
         c1, c2 = st.columns(2)
