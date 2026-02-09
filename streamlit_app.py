@@ -22,7 +22,9 @@ st.set_page_config(
 )
 
 # Custom CSS
+# Custom CSS
 st.markdown("""
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Scope+One&display=swap');
 
@@ -110,18 +112,18 @@ st.markdown("""
     }
 
     #MainMenu, footer, [data-testid="stStatusWidget"] {
-        #MainMenu, footer, [data-testid="stStatusWidget"] {
         visibility: hidden;
     }
 
     /* Mobile Responsive Fixes */
     @media only screen and (max-width: 768px) {
+        /* Force proper mobile layout */
         .main .block-container {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-            max-width: 100% !important;
+            padding: 0.5rem !important;
+            max-width: 100vw !important;
         }
         
+        /* Full width buttons on mobile */
         .stButton>button {
             width: 100% !important;
             padding: 14px 20px !important;
@@ -129,53 +131,69 @@ st.markdown("""
             margin: 10px 0 !important;
         }
         
+        /* Readable metrics on mobile */
         [data-testid="stMetricValue"] {
-            font-size: 22px !important;
+            font-size: 20px !important;
         }
         
         [data-testid="stMetricLabel"] {
             font-size: 11px !important;
         }
         
-        h1 { font-size: 1.8rem !important; }
-        h2 { font-size: 1.5rem !important; }
-        h3 { font-size: 1.3rem !important; }
+        /* Smaller headings on mobile */
+        h1 { font-size: 1.5rem !important; }
+        h2 { font-size: 1.3rem !important; }
+        h3 { font-size: 1.1rem !important; }
         
-        p, div, span, label { font-size: 14px !important; }
+        /* Readable text on mobile */
+        p, div, span, label, li { font-size: 13px !important; }
         
+        /* Fit charts to screen */
         canvas, [data-testid="stImage"] {
             max-width: 100% !important;
+            width: 100% !important;
             height: auto !important;
         }
         
+        /* Better sidebar on mobile */
         [data-testid="stSidebar"] {
             width: 100% !important;
         }
         
+        /* Scrollable tables on mobile */
         [data-testid="stDataFrame"] {
             overflow-x: auto !important;
-            font-size: 12px !important;
+            font-size: 11px !important;
         }
         
+        /* Full width inputs on mobile */
         input, textarea, select {
             width: 100% !important;
             font-size: 16px !important;
         }
         
+        /* Stack columns on mobile */
         [data-testid="column"] {
             width: 100% !important;
             min-width: 100% !important;
+            flex: 1 1 100% !important;
         }
         
+        /* Hide creator badge on mobile */
         .creator-badge {
             display: none !important;
+        }
+        
+        /* Better info boxes on mobile */
+        .stInfo, .stSuccess, .stWarning, .stError {
+            font-size: 13px !important;
+            padding: 10px !important;
         }
     }
 </style>
 
 <div class="creator-badge">Jonathan Sanchez</div>
 """, unsafe_allow_html=True)
-
 # Title and description
 st.markdown("""
 <div style='border-bottom: 1px solid #333333; padding-bottom: 20px; margin-bottom: 30px;'>
