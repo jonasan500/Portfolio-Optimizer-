@@ -18,6 +18,12 @@ from src.config import TICKERS, LOOKBACK_YEARS, NUM_PORTFOLIOS
 
 
 # ---------------------------
+# ✅ Preset tickers (your placeholders)
+# ---------------------------
+DEFAULT_TICKERS = "IAU, SPY, AAPL, META, AMZN"
+
+
+# ---------------------------
 # Session state
 # ---------------------------
 if "optimization_results" not in st.session_state:
@@ -27,8 +33,19 @@ if "panel_open" not in st.session_state:
     st.session_state.panel_open = False
 
 # Persist inputs so panel can be closed without losing values
+# ✅ IMPORTANT: Streamlit will "remember" old widget values.
+# This migration makes sure existing sessions pick up the new presets.
 if "ticker_input" not in st.session_state:
-    st.session_state.ticker_input = "IAU, SPY, AAPL, META, AMZN"
+    st.session_state.ticker_input = DEFAULT_TICKERS
+else:
+    # If the user is still on the old default (from src.config), upgrade to new presets
+    old_default = ", ".join(TICKERS)
+    if st.session_state.ticker_input.strip() == old_default.strip():
+        st.session_state.ticker_input = DEFAULT_TICKERS
+    # If blank for any reason, restore presets
+    if not st.session_state.ticker_input.strip():
+        st.session_state.ticker_input = DEFAULT_TICKERS
+
 if "min_position" not in st.session_state:
     st.session_state.min_position = 0.05
 if "max_position" not in st.session_state:
@@ -205,6 +222,7 @@ with left:
             "Enter tickers (comma-separated)",
             key="ticker_input",
         )
+        st.caption(f"Preset tickers loaded: **{DEFAULT_TICKERS}**")
 
         st.subheader("2. Position Limits")
         c1, c2 = st.columns(2)
@@ -226,7 +244,9 @@ with left:
             ) / 100
 
         st.subheader("3. Historical Data")
-        st.session_state.lookback_years = st.slider("Years of history", 3, 20, int(st.session_state.lookback_years))
+        st.session_state.lookback_years = st.slider(
+            "Years of history", 3, 20, int(st.session_state.lookback_years)
+        )
         st.session_state.num_portfolios = st.slider(
             "Portfolios to test",
             1000,
