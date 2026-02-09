@@ -149,26 +149,18 @@ st.markdown("""
         visibility: hidden;
     }
     
-    /* ULTRA BRIGHT RED SIDEBAR TOGGLE - IMPOSSIBLE TO MISS */
+    /* Sidebar Toggle Button - Make it visible and styled */
     button[kind="header"] {
-        background-color: #FF0000 !important;
+        background-color: #540001 !important;
         color: #ffffff !important;
-        border: 4px solid #ffffff !important;
-        padding: 14px 20px !important;
-        font-size: 26px !important;
-        font-weight: 900 !important;
-        box-shadow: 0 0 30px rgba(255, 0, 0, 1), 0 0 60px rgba(255, 0, 0, 0.6) !important;
-        cursor: pointer !important;
-        border-radius: 8px !important;
-        transition: all 0.3s ease !important;
-        text-transform: uppercase !important;
-        letter-spacing: 2px !important;
+        border: 2px solid #ffffff !important;
+        padding: 8px 12px !important;
+        font-size: 18px !important;
+        border-radius: 4px !important;
     }
     
     button[kind="header"]:hover {
-        background-color: #CC0000 !important;
-        transform: scale(1.15) !important;
-        box-shadow: 0 0 40px rgba(255, 0, 0, 1), 0 0 80px rgba(255, 0, 0, 0.8) !important;
+        background-color: #6B0F1A !important;
     }
 
     /* Mobile Responsive Fixes */
@@ -246,36 +238,18 @@ st.markdown("""
             padding: 10px !important;
         }
         
-        /* ULTRA VISIBLE RED GLOWING SIDEBAR TOGGLE ON MOBILE */
+        /* Make sidebar toggle MORE visible on mobile */
         button[kind="header"] {
             display: block !important;
             position: fixed !important;
-            top: 65px !important;
-            left: 15px !important;
-            z-index: 99999 !important;
-            background-color: #FF0000 !important;
+            top: 10px !important;
+            left: 10px !important;
+            z-index: 1000 !important;
+            background-color: #540001 !important;
             color: #ffffff !important;
-            border: 4px solid #ffffff !important;
-            padding: 16px 22px !important;
-            font-size: 24px !important;
-            font-weight: 900 !important;
-            box-shadow: 0 0 35px rgba(255, 0, 0, 1), 0 0 70px rgba(255, 0, 0, 0.8) !important;
-            border-radius: 8px !important;
-            animation: pulse-red 2s infinite !important;
-        }
-        
-        button[kind="header"]:hover {
-            transform: scale(1.2) !important;
-            box-shadow: 0 0 50px rgba(255, 0, 0, 1), 0 0 100px rgba(255, 0, 0, 1) !important;
-        }
-        
-        @keyframes pulse-red {
-            0%, 100% {
-                box-shadow: 0 0 35px rgba(255, 0, 0, 1), 0 0 70px rgba(255, 0, 0, 0.8);
-            }
-            50% {
-                box-shadow: 0 0 50px rgba(255, 0, 0, 1), 0 0 100px rgba(255, 0, 0, 1);
-            }
+            border: 2px solid #ffffff !important;
+            padding: 10px 14px !important;
+            font-size: 20px !important;
         }
     }
 </style>
