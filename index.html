@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Optimizer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Scope+One&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Scope One', serif;
+        }
+
+        body {
+            background: #000000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated grid background */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(84, 0, 1, 0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(84, 0, 1, 0.15) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Diagonal chart lines */
+        .chart-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 100px,
+                    rgba(0, 255, 136, 0.05) 100px,
+                    rgba(0, 255, 136, 0.05) 101px
+                );
+            z-index: 2;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            max-width: 900px;
+            padding: 40px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 400;
+            color: #ffffff;
+            margin-bottom: 3rem;
+            letter-spacing: 1px;
+        }
+
+        .terminal-box {
+            background: #0a0a0a;
+            border: 3px solid #540001;
+            padding: 30px;
+            margin: 0 auto 2.5rem;
+            max-width: 700px;
+            box-shadow: 0 0 40px rgba(84, 0, 1, 0.4);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 0 10px;
+        }
+
+        .ticker {
+            font-family: monospace;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .price {
+            font-family: monospace;
+            color: #00ff88;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        #candleChart {
+            width: 100%;
+            height: 150px;
+            background: #000000;
+            border: 1px solid #333;
+            margin-bottom: 0;
+            display: block;
+        }
+
+        .bongo-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .bongo-container img {
+            max-width: 400px;
+            width: 100%;
+            height: auto;
+        }
+
+        .cta-button {
+            background: #540001;
+            color: #ffffff;
+            font-size: 1.3rem;
+            font-weight: 400;
+            padding: 16px 60px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .cta-button:hover {
+            background: #6B0F1A;
+            transform: scale(1.03);
+        }
+
+        .creator-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1a1a1a;
+            color: #999;
+            padding: 8px 16px;
+            border: 1px solid #333;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="chart-lines"></div>
+
+    <div class="container">
+        <h1>Portfolio Optimizer</h1>
+
+        <div class="terminal-box">
+            <canvas id="candleChart"></canvas>
+        </div>
+
+        <button class="cta-button" onclick="startOptimizer()">Get Started</button>
+    </div>
+
+    <div class="creator-badge">Jonathan Sanchez</div>
+
+    <script>
+        const canvas = document.getElementById('candleChart');
+        const ctx = canvas.getContext('2d');
+        const priceDisplay = null; // Removed ticker
+
+        // Set canvas size
+        canvas.width = canvas.offsetWidth;
+        canvas.height = 150;
+
+        let currentPrice = 100;
+        let candleData = [];
+
+        function generateCandle() {
+            const change = (Math.random() - 0.48) * 2;
+            currentPrice = Math.max(95, Math.min(105, currentPrice + change));
+
+            const candle = {
+                price: currentPrice,
+                high: currentPrice + Math.random() * 1.5,
+                low: currentPrice - Math.random() * 1.5,
+                isGreen: Math.random() > 0.5
+            };
+
+            candleData.push(candle);
+            if (candleData.length > 20) {
+                candleData.shift();
+            }
+
+            drawChart();
+        }
+
+        function drawChart() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const candleWidth = canvas.width / 22;
+            const priceRange = 10;
+            const padding = 10; // Padding from top/bottom
+            const chartHeight = canvas.height - (padding * 2);
+
+            candleData.forEach((candle, i) => {
+                const x = i * candleWidth + candleWidth / 2;
+
+                // Calculate positions with padding to keep candles in frame
+                const bodyTop = padding + ((105 - Math.max(candle.price, candle.price - 0.5)) / priceRange) * chartHeight;
+                const bodyBottom = padding + ((105 - Math.min(candle.price, candle.price - 0.5)) / priceRange) * chartHeight;
+                const wickTop = padding + ((105 - candle.high) / priceRange) * chartHeight;
+                const wickBottom = padding + ((105 - candle.low) / priceRange) * chartHeight;
+
+                const color = candle.isGreen ? '#00ff88' : '#ff4466';
+
+                // Wick
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x, Math.max(padding, Math.min(canvas.height - padding, wickTop)));
+                ctx.lineTo(x, Math.max(padding, Math.min(canvas.height - padding, wickBottom)));
+                ctx.stroke();
+
+                // Body
+                ctx.fillStyle = color;
+                const rectTop = Math.max(padding, Math.min(canvas.height - padding, bodyTop));
+                const rectHeight = Math.max(2, Math.abs(bodyBottom - bodyTop));
+                ctx.fillRect(x - candleWidth / 4, rectTop, candleWidth / 2, Math.min(rectHeight, canvas.height - padding - rectTop));
+            });
+        }
+
+        // Initialize with candles
+        for (let i = 0; i < 15; i++) {
+            generateCandle();
+        }
+
+        // Update every second
+        setInterval(generateCandle, 1000);
+
+        // Start optimizer function
+        function startOptimizer() {
+            // Change this to your deployed Streamlit URL
+            // For local testing: http://localhost:8501
+            window.location.href = '/optimizer';
+        }
+    </script>
+</body>
+</html>
