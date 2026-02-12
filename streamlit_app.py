@@ -1,7 +1,4 @@
 # streamlit_app.py
-"""
-Portfolio Optimizer - Interactive Web Interface
-"""
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -17,15 +14,10 @@ from src.portfolio_engine import generate_random_portfolios, monte_carlo_portfol
 from src.config import TICKERS, LOOKBACK_YEARS, NUM_PORTFOLIOS
 
 
-# ---------------------------
-# ✅ Preset tickers (your placeholders)
-# ---------------------------
 DEFAULT_TICKERS = "IAU, SPY, AAPL, META, AMZN"
 
 
-# ---------------------------
-# Session state
-# ---------------------------
+
 if "optimization_results" not in st.session_state:
     st.session_state.optimization_results = None
 
@@ -50,9 +42,7 @@ if "num_portfolios" not in st.session_state:
     st.session_state.num_portfolios = NUM_PORTFOLIOS
 
 
-# ---------------------------
-# Page configuration
-# ---------------------------
+
 st.set_page_config(
     page_title="Portfolio Optimizer by Jonathan Sanchez",
     page_icon="📊",
@@ -60,9 +50,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ---------------------------
-# CSS
-# ---------------------------
+
 st.markdown(
     """
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -169,9 +157,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ---------------------------
-# Header + BEGIN toggle
-# ---------------------------
+
 st.markdown(
     """
 <div style='border-bottom: 1px solid #333333; padding-bottom: 20px; margin-bottom: 14px;'>
@@ -193,17 +179,13 @@ with bcol2:
 
 st.markdown("---")
 
-# ---------------------------
-# Layout: left panel + main
-# ---------------------------
+
 if st.session_state.panel_open:
     left, main = st.columns([1, 2.2], gap="large")
 else:
     left, main = st.columns([0.0001, 1], gap="large")
 
-# ---------------------------
-# Control Panel (PURE STREAMLIT)
-# ---------------------------
+
 optimize_button = False  # default
 
 with left:
@@ -213,7 +195,7 @@ with left:
 
         st.subheader("1. Select Assets")
 
-        # ✅ Reset button forces preset back into the widget + stored state
+
         r1, r2 = st.columns([1, 1])
         with r1:
             if st.button("↩️ Reset to Preset"):
@@ -223,7 +205,7 @@ with left:
         with r2:
             st.caption("")
 
-        # ✅ Separate widget key (ticker_widget), then sync into ticker_input
+
         widget_val = st.text_input(
             "Enter tickers (comma-separated)",
             value=st.session_state.ticker_widget,
@@ -267,12 +249,10 @@ with left:
         optimize_button = st.button("🚀 Optimize Portfolio", type="primary")
         st.markdown("</div>", unsafe_allow_html=True)
 
-# Parse tickers from stored input (works even when panel is closed)
+
 tickers_list = [t.strip().upper() for t in st.session_state.ticker_input.split(",") if t.strip()]
 
-# ---------------------------
-# Optimization logic (runs when Optimize clicked)
-# ---------------------------
+
 if optimize_button:
     if len(tickers_list) < 2:
         with main:
@@ -344,9 +324,7 @@ if optimize_button:
             with main:
                 st.error(f"❌ Error: {str(e)}")
 
-# ---------------------------
-# Main content (results / tabs)
-# ---------------------------
+
 with main:
     if st.session_state.optimization_results is None:
         st.info("👈 Tap **BEGIN** to open settings, then click **Optimize Portfolio**.")
