@@ -1,7 +1,5 @@
 # app.py
-"""
-Portfolio Optimizer - Main execution script
-"""
+
 import numpy as np
 from src.data_pipeline import fetch_price_data, calculate_returns, calculate_annual_stats
 from src.portfolio_engine import generate_random_portfolios, monte_carlo_portfolio
@@ -15,7 +13,6 @@ def main():
     print("PORTFOLIO OPTIMIZER".center(70))
     print("=" * 70)
 
-    # Fetch and process data
     print("\nStep 1: Fetching historical data...")
     prices = fetch_price_data()
     print(f"✓ Loaded {len(prices)} days of price data for {len(TICKERS)} assets")
@@ -25,7 +22,6 @@ def main():
     annual_return, annual_volatility, annual_cov = calculate_annual_stats(daily_returns)
     print(f"✓ Calculated statistics from {len(daily_returns)} days of returns")
 
-    # Display individual asset stats
     print("\n" + "=" * 70)
     print("INDIVIDUAL ASSET STATISTICS".center(70))
     print("=" * 70)
@@ -43,7 +39,7 @@ def main():
         sharpe = annual_return[ticker] / annual_volatility[ticker]
         print(f"  {ticker:5s}: {sharpe:6.3f}")
 
-    # Generate random portfolios
+ 
     print(f"\nStep 3: Generating {NUM_PORTFOLIOS:,} random portfolios...")
     print(f"         Position limits: {MIN_POSITION * 100:.0f}%-{MAX_POSITION * 100:.0f}% per stock")
 
@@ -56,18 +52,16 @@ def main():
     )
     print(f"✓ Generated {NUM_PORTFOLIOS:,} portfolio combinations")
 
-    # Find optimal portfolios
     max_sharpe_idx = np.argmax(results['sharpe'])
     min_vol_idx = np.argmin(results['volatility'])
 
-        # After finding optimal portfolios, add this:
+
     print("\nGenerating efficient frontier visualization...")
 
     from src.visualizations import plot_efficient_frontier
 
     plot_efficient_frontier(results, max_sharpe_idx, min_vol_idx)
 
-    # Display results
     print("\n" + "=" * 70)
     print("OPTIMIZED PORTFOLIOS".center(70))
     print("=" * 70)
@@ -104,13 +98,11 @@ def test_monte_carlo():
     print("MONTE CARLO SIMULATION".center(70))
     print("=" * 70)
 
-    # Get data
     print("\nFetching data and calculating statistics...")
     prices = fetch_price_data()
     daily_returns = calculate_returns(prices)
     annual_return, annual_volatility, annual_cov = calculate_annual_stats(daily_returns)
 
-    # Generate portfolios to find max Sharpe
     print("Finding optimal portfolio...")
     results = generate_random_portfolios(annual_return, annual_cov, NUM_PORTFOLIOS,
                                          MIN_POSITION, MAX_POSITION)
@@ -121,7 +113,6 @@ def test_monte_carlo():
     for i, ticker in enumerate(TICKERS):
         print(f"  {ticker}: {optimal_weights[i] * 100:.1f}%")
 
-    # Run Monte Carlo
     print(f"\nRunning Monte Carlo simulation...")
     print(f"  Simulations: 10,000")
     print(f"  Time Horizon: 1 year")
@@ -136,7 +127,6 @@ def test_monte_carlo():
         initial_investment=10000
     )
 
-    # Display results
     print("\n" + "-" * 70)
     print("SIMULATION RESULTS")
     print("-" * 70)
@@ -169,16 +159,13 @@ def test_monte_carlo():
     print(f"  Median:    ${np.median(mc_results['final_values']):,.0f}")
     print(f"  Best 5%:   ${np.percentile(mc_results['final_values'], 95):,.0f}")
     print(f"  Worst 5%:  ${np.percentile(mc_results['final_values'], 5):,.0f}")
-    # Generate visualizations
     print("\nGenerating visualizations...")
 
     from src.visualizations import plot_monte_carlo_paths, plot_return_distribution
 
-    # Plot Monte Carlo paths
     plot_monte_carlo_paths(mc_results, optimal_weights, TICKERS,
                            num_paths_to_plot=200, initial_investment=10000)
 
-    # Plot return distribution
     plot_return_distribution(mc_results)
 
     print("\n" + "=" * 70)
